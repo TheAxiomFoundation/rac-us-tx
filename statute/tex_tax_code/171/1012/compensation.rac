@@ -1,0 +1,73 @@
+# Texas Tax Code 171.1012 - Compensation Deduction
+#
+# Defines compensation deduction method for margin calculation
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.171.htm#171.1012
+
+# Input: Total wages and cash compensation paid
+total_wages_paid:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(a)(1)"
+    label: "Total Wages Paid"
+    from 2024-01-01: 0
+
+# Input: Number of employees
+number_of_employees:
+    entity: Business
+    source: "Tex. Tax Code 171.1012"
+    label: "Number of Employees"
+    from 2024-01-01: 0
+
+# Input: Employer contributions to employee benefits
+employer_benefit_contributions:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(a)(2)"
+    label: "Employer Benefit Contributions"
+    from 2024-01-01: 0
+
+# Input: Stock-based compensation
+stock_based_compensation:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(a)(3)"
+    label: "Stock-Based Compensation"
+    from 2024-01-01: 0
+
+# Input: Net distributive income to partners/LLC members
+distributive_income_to_owners:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(a)(4)"
+    label: "Distributive Income to Owners"
+    from 2024-01-01: 0
+
+# Per-employee compensation limit
+compensation_limit_per_employee:
+    source: "Tex. Tax Code 171.1012(b)"
+    label: "Compensation Limit Per Employee"
+    from 2024-01-01: 400000
+
+# Calculate total compensation before limits
+total_compensation_before_limit:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(a)"
+    label: "Total Compensation Before Limit"
+    from 2024-01-01: total_wages_paid + employer_benefit_contributions + stock_based_compensation + distributive_income_to_owners
+
+# Calculate compensation limit (per-employee cap)
+compensation_limit:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(b)"
+    label: "Compensation Limit"
+    from 2024-01-01: number_of_employees * compensation_limit_per_employee
+
+# Calculate allowable compensation deduction
+allowable_compensation:
+    entity: Business
+    source: "Tex. Tax Code 171.1012"
+    label: "Allowable Compensation"
+    from 2024-01-01: min(total_compensation_before_limit, compensation_limit)
+
+# Calculate margin using compensation method
+margin_using_compensation:
+    entity: Business
+    source: "Tex. Tax Code 171.101(a)(1)(A)(ii)"
+    label: "Margin Using Compensation"
+    from 2024-01-01: max(0, total_revenue - allowable_compensation)

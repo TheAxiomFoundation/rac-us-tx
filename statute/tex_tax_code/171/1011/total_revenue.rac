@@ -1,0 +1,80 @@
+# Texas Tax Code 171.1011 - Total Revenue
+#
+# Defines total revenue for purposes of calculating taxable margin
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.171.htm#171.1011
+
+# Input: Gross revenue from Texas business operations
+gross_revenue:
+    entity: Business
+    source: "Tex. Tax Code 171.1011(a)"
+    label: "Gross Revenue"
+    from 2024-01-01: 0
+
+# Input: Revenue from sales of tangible personal property
+revenue_from_sales_tpp:
+    entity: Business
+    source: "Tex. Tax Code 171.1011(c)(1)"
+    label: "Revenue from Sales of TPP"
+    from 2024-01-01: 0
+
+# Input: Revenue from services
+revenue_from_services:
+    entity: Business
+    source: "Tex. Tax Code 171.1011(c)(2)"
+    label: "Revenue from Services"
+    from 2024-01-01: 0
+
+# Input: Rental income
+rental_income:
+    entity: Business
+    source: "Tex. Tax Code 171.1011(c)(3)"
+    label: "Rental Income"
+    from 2024-01-01: 0
+
+# Input: Other revenue
+other_revenue:
+    entity: Business
+    source: "Tex. Tax Code 171.1011(c)(4)"
+    label: "Other Revenue"
+    from 2024-01-01: 0
+
+# Input: Dividends and interest from federal obligations (excluded)
+excluded_dividends_interest:
+    entity: Business
+    source: "Tex. Tax Code 171.1011(e)(1)"
+    label: "Excluded Dividends and Interest"
+    from 2024-01-01: 0
+
+# Input: Amounts from settlement of federal securities (excluded)
+excluded_federal_securities:
+    entity: Business
+    source: "Tex. Tax Code 171.1011(e)(2)"
+    label: "Excluded Federal Securities"
+    from 2024-01-01: 0
+
+# Input: Bad debt recovered
+bad_debt_recovered:
+    entity: Business
+    source: "Tex. Tax Code 171.1011(e)(3)"
+    label: "Bad Debt Recovered"
+    from 2024-01-01: 0
+
+# No-tax-due threshold
+no_tax_due_threshold:
+    source: "Tex. Tax Code 171.002(d)(2)"
+    label: "No Tax Due Threshold"
+    from 2024-01-01: 2470000
+
+# Calculate total revenue
+total_revenue:
+    entity: Business
+    source: "Tex. Tax Code 171.1011"
+    label: "Total Revenue"
+    from 2024-01-01: max(0, gross_revenue + revenue_from_sales_tpp + revenue_from_services + rental_income + other_revenue - excluded_dividends_interest - excluded_federal_securities - bad_debt_recovered)
+
+# Determine if entity is below no-tax-due threshold
+is_below_no_tax_threshold:
+    entity: Business
+    source: "Tex. Tax Code 171.002(d)(2)"
+    label: "Below No-Tax-Due Threshold"
+    from 2024-01-01: total_revenue <= no_tax_due_threshold

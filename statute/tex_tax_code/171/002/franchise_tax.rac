@@ -1,0 +1,60 @@
+# Texas Tax Code 171.002 - Imposition of Franchise Tax
+#
+# Imposes franchise tax on entities doing business in Texas
+# Rate depends on business type (retail/wholesale vs. other)
+#
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.171.htm#171.002
+
+# Tax rate for retail/wholesale trade (0.375%)
+tax_rate_retail_wholesale:
+    source: "Tex. Tax Code 171.002(b)"
+    label: "Tax Rate Retail/Wholesale"
+    from 2024-01-01: 0.375
+
+# Tax rate for other businesses (0.75%)
+tax_rate_other:
+    source: "Tex. Tax Code 171.002(a)"
+    label: "Tax Rate Other"
+    from 2024-01-01: 0.75
+
+# Determine if entity is retail or wholesale trade
+is_retail_or_wholesale:
+    entity: Business
+    source: "Tex. Tax Code 171.002(b)"
+    label: "Retail or Wholesale Trade"
+    from 2024-01-01: if primary_business_activity == "retail_trade": true else: if primary_business_activity == "wholesale_trade": true else: false
+
+# Determine applicable tax rate
+applicable_tax_rate:
+    entity: Business
+    source: "Tex. Tax Code 171.002(a)"
+    label: "Applicable Tax Rate"
+    from 2024-01-01: if is_retail_or_wholesale: tax_rate_retail_wholesale else: tax_rate_other
+
+# Calculate standard margin-based tax
+margin_based_tax:
+    entity: Business
+    source: "Tex. Tax Code 171.002"
+    label: "Margin-Based Tax"
+    from 2024-01-01: apportioned_taxable_margin * applicable_tax_rate / 100
+
+# Calculate final franchise tax amount
+franchise_tax:
+    entity: Business
+    source: "Tex. Tax Code 171.002"
+    label: "Texas Franchise Tax"
+    from 2024-01-01: if not is_subject_to_franchise_tax or not is_doing_business_in_texas or is_below_no_tax_threshold: 0 else: if uses_ez_computation: ez_computation_tax else: margin_based_tax
+
+# Determine if entity owes franchise tax
+owes_franchise_tax:
+    entity: Business
+    source: "Tex. Tax Code 171.002"
+    label: "Owes Franchise Tax"
+    from 2024-01-01: franchise_tax > 0
+
+# Calculate effective franchise tax rate
+effective_franchise_tax_rate:
+    entity: Business
+    source: "Tex. Tax Code 171.002"
+    label: "Effective Franchise Tax Rate"
+    from 2024-01-01: if total_revenue <= 0: 0 else: franchise_tax / total_revenue * 100

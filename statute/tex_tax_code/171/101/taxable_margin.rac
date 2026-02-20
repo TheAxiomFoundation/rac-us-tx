@@ -1,0 +1,76 @@
+# Texas Tax Code 171.101 - Determination of Taxable Margin
+#
+# The taxable margin is the lesser of:
+# (1) 70% of total revenue, or
+# (2) Total revenue after deducting COGS or compensation (whichever is greater)
+# (3) Total revenue minus $1 million
+#
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.171.htm#171.101
+
+# 70% revenue multiplier
+margin_revenue_multiplier:
+    source: "Tex. Tax Code 171.101(a)(1)(B)"
+    label: "Margin Revenue Multiplier"
+    from 2024-01-01: 0.70
+
+# $1 million threshold
+minimum_margin_threshold:
+    source: "Tex. Tax Code 171.101(a)(1)(D)"
+    label: "Minimum Margin Threshold"
+    from 2024-01-01: 1000000
+
+# Calculate 70% of total revenue
+margin_70_percent_revenue:
+    entity: Business
+    source: "Tex. Tax Code 171.101(a)(1)(B)"
+    label: "70% of Total Revenue"
+    from 2024-01-01: total_revenue * margin_revenue_multiplier
+
+# Calculate total revenue minus $1 million
+margin_minus_million:
+    entity: Business
+    source: "Tex. Tax Code 171.101(a)(1)(D)"
+    label: "Total Revenue Minus $1 Million"
+    from 2024-01-01: max(0, total_revenue - minimum_margin_threshold)
+
+# Choose best margin calculation (lowest of the four options)
+taxable_margin:
+    entity: Business
+    source: "Tex. Tax Code 171.101"
+    label: "Taxable Margin"
+    from 2024-01-01: min(min(margin_70_percent_revenue, min(margin_using_cogs, margin_using_compensation)), margin_minus_million)
+
+# Input: Texas apportionment factor (default 100% if only doing business in Texas)
+apportionment_factor:
+    entity: Business
+    source: "Tex. Tax Code 171.106"
+    label: "Texas Apportionment Factor"
+    from 2024-01-01: 1.0
+
+# Input: Gross receipts sourced to Texas
+texas_gross_receipts:
+    entity: Business
+    source: "Tex. Tax Code 171.106"
+    label: "Texas Gross Receipts"
+    from 2024-01-01: 0
+
+# Input: Total gross receipts everywhere
+total_gross_receipts_everywhere:
+    entity: Business
+    source: "Tex. Tax Code 171.106"
+    label: "Total Gross Receipts Everywhere"
+    from 2024-01-01: 0
+
+# Calculate apportionment factor
+calculated_apportionment_factor:
+    entity: Business
+    source: "Tex. Tax Code 171.106"
+    label: "Calculated Apportionment Factor"
+    from 2024-01-01: if total_gross_receipts_everywhere <= 0: 1.0 else: texas_gross_receipts / total_gross_receipts_everywhere
+
+# Apportioned taxable margin
+apportioned_taxable_margin:
+    entity: Business
+    source: "Tex. Tax Code 171.106"
+    label: "Apportioned Taxable Margin"
+    from 2024-01-01: taxable_margin * calculated_apportionment_factor

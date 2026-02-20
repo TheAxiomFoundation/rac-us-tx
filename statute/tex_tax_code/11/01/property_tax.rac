@@ -1,0 +1,97 @@
+# Texas Tax Code 11.01 - Real and Tangible Personal Property Taxable
+#
+# Defines taxable property and framework for local property taxation
+# Note: Texas has no state property tax - all property taxes are local
+#
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.11.htm#11.01
+
+# Input: School district tax rate (per $100 of valuation)
+school_district_tax_rate:
+    entity: Property
+    source: "Tex. Tax Code 26.08"
+    label: "School District Tax Rate"
+    from 2024-01-01: 0
+
+# Input: City tax rate (per $100 of valuation)
+city_tax_rate:
+    entity: Property
+    source: "Tex. Tax Code 26.04"
+    label: "City Tax Rate"
+    from 2024-01-01: 0
+
+# Input: County tax rate (per $100 of valuation)
+county_tax_rate:
+    entity: Property
+    source: "Tex. Tax Code 26.04"
+    label: "County Tax Rate"
+    from 2024-01-01: 0
+
+# Input: Special district tax rate (per $100 of valuation)
+special_district_tax_rate:
+    entity: Property
+    source: "Tex. Tax Code 26.04"
+    label: "Special District Tax Rate"
+    from 2024-01-01: 0
+
+# Input: Exemptions for non-school taxing units
+non_school_exemptions:
+    entity: Property
+    source: "Tex. Tax Code 11.13"
+    label: "Non-School Exemptions"
+    from 2024-01-01: 0
+
+# Calculate taxable value for non-school taxing units
+taxable_value_other:
+    entity: Property
+    source: "Tex. Tax Code 11.13"
+    label: "Taxable Value (Other)"
+    from 2024-01-01: max(0, capped_appraised_value - non_school_exemptions)
+
+# Calculate school district property tax
+school_district_tax:
+    entity: Property
+    source: "Tex. Tax Code 26.08"
+    label: "School District Property Tax"
+    from 2024-01-01: taxable_value_school * school_district_tax_rate / 100
+
+# Calculate city property tax
+city_property_tax:
+    entity: Property
+    source: "Tex. Tax Code 26.04"
+    label: "City Property Tax"
+    from 2024-01-01: taxable_value_other * city_tax_rate / 100
+
+# Calculate county property tax
+county_property_tax:
+    entity: Property
+    source: "Tex. Tax Code 26.04"
+    label: "County Property Tax"
+    from 2024-01-01: taxable_value_other * county_tax_rate / 100
+
+# Calculate special district property tax
+special_district_tax:
+    entity: Property
+    source: "Tex. Tax Code 26.04"
+    label: "Special District Property Tax"
+    from 2024-01-01: taxable_value_other * special_district_tax_rate / 100
+
+# Calculate total property tax
+total_property_tax:
+    entity: Property
+    source: "Tex. Tax Code Chapter 26"
+    label: "Total Property Tax"
+    from 2024-01-01: school_district_tax + city_property_tax + county_property_tax + special_district_tax
+
+# Calculate combined tax rate
+combined_tax_rate:
+    entity: Property
+    source: "Tex. Tax Code Chapter 26"
+    label: "Combined Tax Rate"
+    from 2024-01-01: school_district_tax_rate + city_tax_rate + county_tax_rate + special_district_tax_rate
+
+# Calculate effective tax rate
+effective_property_tax_rate:
+    entity: Property
+    source: "Tex. Tax Code Chapter 26"
+    label: "Effective Property Tax Rate"
+    from 2024-01-01: if capped_appraised_value <= 0: 0 else: total_property_tax / capped_appraised_value * 100

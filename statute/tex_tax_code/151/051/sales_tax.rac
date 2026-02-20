@@ -1,0 +1,74 @@
+# Texas Tax Code 151.051 - Sales Tax Imposed
+#
+# Imposes sales tax on sale of tangible personal property
+# and certain services in Texas
+#
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.151.htm#151.051
+
+# Input: Sale price before tax
+sale_price:
+    entity: Transaction
+    source: "Tex. Tax Code 151.007"
+    label: "Sale Price"
+    from 2024-01-01: 0
+
+# Input: Local sales tax rate (varies by jurisdiction)
+local_sales_tax_rate:
+    entity: Transaction
+    source: "Tex. Tax Code 321.101"
+    label: "Local Sales Tax Rate"
+    from 2024-01-01: 0
+
+# Input: Whether item is exempt from sales tax
+is_exempt_from_sales_tax:
+    entity: Transaction
+    source: "Tex. Tax Code 151.313-151.317"
+    label: "Exempt from Sales Tax"
+    from 2024-01-01: false
+
+# State sales tax rate (6.25%)
+state_sales_tax_rate:
+    source: "Tex. Tax Code 151.051"
+    label: "State Sales Tax Rate"
+    from 2024-01-01: 6.25
+
+# Maximum local sales tax rate (2%)
+max_local_sales_tax_rate:
+    source: "Tex. Tax Code 321.101"
+    label: "Maximum Local Sales Tax Rate"
+    from 2024-01-01: 2.0
+
+# Calculate state sales tax
+state_sales_tax:
+    entity: Transaction
+    source: "Tex. Tax Code 151.051"
+    label: "State Sales Tax"
+    from 2024-01-01: if is_exempt_from_sales_tax: 0 else: sale_price * state_sales_tax_rate / 100
+
+# Calculate local sales tax
+local_sales_tax:
+    entity: Transaction
+    source: "Tex. Tax Code 321.101"
+    label: "Local Sales Tax"
+    from 2024-01-01: if is_exempt_from_sales_tax: 0 else: sale_price * min(local_sales_tax_rate, max_local_sales_tax_rate) / 100
+
+# Calculate total sales tax
+total_sales_tax:
+    entity: Transaction
+    source: "Tex. Tax Code 151.051"
+    label: "Total Sales Tax"
+    from 2024-01-01: state_sales_tax + local_sales_tax
+
+# Calculate combined sales tax rate
+combined_sales_tax_rate:
+    entity: Transaction
+    source: "Tex. Tax Code 151.051"
+    label: "Combined Sales Tax Rate"
+    from 2024-01-01: if is_exempt_from_sales_tax: 0 else: state_sales_tax_rate + min(local_sales_tax_rate, max_local_sales_tax_rate)
+
+# Calculate total amount due including tax
+total_amount_due:
+    entity: Transaction
+    source: "Tex. Tax Code 151.051"
+    label: "Total Amount Due"
+    from 2024-01-01: sale_price + total_sales_tax

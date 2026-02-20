@@ -1,0 +1,46 @@
+# Texas Tax Code 171.1013 - E-Z Computation
+#
+# Alternative simplified tax calculation based on total revenue
+# Available to entities with total revenue <= $20 million
+#
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.171.htm#171.1013
+
+# E-Z computation revenue threshold ($20 million)
+discounted_rate_threshold:
+    source: "Tex. Tax Code 171.1013"
+    label: "E-Z Computation Revenue Threshold"
+    from 2024-01-01: 20000000
+
+# E-Z computation tax rate (0.331%)
+tax_rate_ez:
+    source: "Tex. Tax Code 171.1013"
+    label: "E-Z Computation Tax Rate"
+    from 2024-01-01: 0.331
+
+# Determine if entity qualifies for E-Z computation
+qualifies_for_ez_computation:
+    entity: Business
+    source: "Tex. Tax Code 171.1013"
+    label: "Qualifies for E-Z Computation"
+    from 2024-01-01: total_revenue <= discounted_rate_threshold
+
+# Calculate E-Z computation tax
+ez_computation_tax:
+    entity: Business
+    source: "Tex. Tax Code 171.1013"
+    label: "E-Z Computation Tax"
+    from 2024-01-01: total_revenue * tax_rate_ez * apportionment_factor / 100
+
+# Input: Entity elects E-Z computation
+elects_ez_computation:
+    entity: Business
+    source: "Tex. Tax Code 171.1013"
+    label: "Elects E-Z Computation"
+    from 2024-01-01: false
+
+# Determine if E-Z computation applies (qualified and elected)
+uses_ez_computation:
+    entity: Business
+    source: "Tex. Tax Code 171.1013"
+    label: "Uses E-Z Computation"
+    from 2024-01-01: qualifies_for_ez_computation and elects_ez_computation

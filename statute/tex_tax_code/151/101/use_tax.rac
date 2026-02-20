@@ -1,0 +1,55 @@
+# Texas Tax Code 151.101 - Use Tax Imposed
+#
+# Imposes use tax on taxable items stored, used, or consumed in Texas
+# when sales tax was not paid at time of purchase
+#
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.151.htm#151.101
+
+# Input: Purchase price of item
+purchase_price:
+    entity: Transaction
+    source: "Tex. Tax Code 151.101"
+    label: "Purchase Price"
+    from 2024-01-01: 0
+
+# Input: Sales tax already paid on item
+sales_tax_already_paid:
+    entity: Transaction
+    source: "Tex. Tax Code 151.101(b)"
+    label: "Sales Tax Already Paid"
+    from 2024-01-01: 0
+
+# Input: Whether item is exempt from use tax (mirrors sales tax exemptions)
+is_exempt_from_use_tax:
+    entity: Transaction
+    source: "Tex. Tax Code 151.313-151.317"
+    label: "Exempt from Use Tax"
+    from 2024-01-01: false
+
+# Input: Local jurisdiction rate where item is used
+local_use_tax_rate:
+    entity: Transaction
+    source: "Tex. Tax Code 321.104"
+    label: "Local Use Tax Rate"
+    from 2024-01-01: 0
+
+# Calculate gross use tax before credit
+gross_use_tax:
+    entity: Transaction
+    source: "Tex. Tax Code 151.101"
+    label: "Gross Use Tax"
+    from 2024-01-01: if is_exempt_from_use_tax: 0 else: purchase_price * (state_sales_tax_rate + min(local_use_tax_rate, max_local_sales_tax_rate)) / 100
+
+# Calculate use tax credit for taxes paid to other states
+use_tax_credit:
+    entity: Transaction
+    source: "Tex. Tax Code 151.101(b)"
+    label: "Use Tax Credit"
+    from 2024-01-01: min(sales_tax_already_paid, gross_use_tax)
+
+# Calculate net use tax due
+use_tax_due:
+    entity: Transaction
+    source: "Tex. Tax Code 151.101"
+    label: "Use Tax Due"
+    from 2024-01-01: max(0, gross_use_tax - use_tax_credit)

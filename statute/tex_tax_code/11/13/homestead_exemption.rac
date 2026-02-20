@@ -1,0 +1,136 @@
+# Texas Tax Code 11.13 - Residence Homestead Exemptions
+#
+# Provides exemptions from property taxation for residence homesteads
+# Note: Texas has no state property tax; exemptions apply to local taxes
+#
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.11.htm#11.13
+
+# Input: Is property owner's residence homestead
+is_residence_homestead:
+    entity: Property
+    source: "Tex. Tax Code 11.13(a)"
+    label: "Residence Homestead"
+    from 2024-01-01: false
+
+# Input: Appraised value of property
+appraised_value:
+    entity: Property
+    source: "Tex. Tax Code 23.01"
+    label: "Appraised Value"
+    from 2024-01-01: 0
+
+# Input: Prior year appraised value (for cap calculation)
+prior_year_appraised_value:
+    entity: Property
+    source: "Tex. Tax Code 23.23"
+    label: "Prior Year Appraised Value"
+    from 2024-01-01: 0
+
+# Input: Is property owner 65 or older
+owner_is_over_65:
+    entity: Property
+    source: "Tex. Tax Code 11.13(c)"
+    label: "Owner 65 or Older"
+    from 2024-01-01: false
+
+# Input: Is property owner disabled
+owner_is_disabled:
+    entity: Property
+    source: "Tex. Tax Code 11.13(c)"
+    label: "Owner Disabled"
+    from 2024-01-01: false
+
+# Input: Is property owner a disabled veteran
+owner_is_disabled_veteran:
+    entity: Property
+    source: "Tex. Tax Code 11.22"
+    label: "Owner Disabled Veteran"
+    from 2024-01-01: false
+
+# Input: Veteran disability rating (0-100)
+veteran_disability_rating:
+    entity: Property
+    source: "Tex. Tax Code 11.22"
+    label: "Veteran Disability Rating"
+    from 2024-01-01: 0
+
+# Homestead appraisal cap rate (10% per year)
+homestead_appraisal_cap:
+    source: "Tex. Tax Code 23.23"
+    label: "Homestead Appraisal Cap Rate"
+    from 2024-01-01: 10
+
+# School homestead exemption amount
+school_homestead_exemption_amount:
+    source: "Tex. Tax Code 11.13(b)"
+    label: "School Homestead Exemption Amount"
+    from 2024-01-01: 100000
+
+# Over-65/disabled exemption amount
+over_65_disabled_exemption_amount:
+    source: "Tex. Tax Code 11.13(c)"
+    label: "Over-65/Disabled Exemption Amount"
+    from 2024-01-01: 10000
+
+# Optional homestead percentage
+optional_homestead_percentage:
+    source: "Tex. Tax Code 11.13(n)"
+    label: "Optional Homestead Percentage"
+    from 2024-01-01: 20
+
+# Optional homestead minimum
+optional_homestead_minimum:
+    source: "Tex. Tax Code 11.13(n)"
+    label: "Optional Homestead Minimum"
+    from 2024-01-01: 5000
+
+# Calculate homestead appraisal cap
+# Cap only applies to homesteads; maximum increase is cap_rate percent of prior year value
+capped_appraised_value:
+    entity: Property
+    source: "Tex. Tax Code 23.23"
+    label: "Capped Appraised Value"
+    from 2024-01-01: if not is_residence_homestead: appraised_value else: min(appraised_value, prior_year_appraised_value + prior_year_appraised_value * homestead_appraisal_cap / 100)
+
+# Calculate school district homestead exemption
+school_homestead_exemption:
+    entity: Property
+    source: "Tex. Tax Code 11.13(b)"
+    label: "School Homestead Exemption"
+    from 2024-01-01: if is_residence_homestead: school_homestead_exemption_amount else: 0
+
+# Calculate over-65/disabled additional exemption
+over_65_disabled_exemption:
+    entity: Property
+    source: "Tex. Tax Code 11.13(c)"
+    label: "Over-65/Disabled Exemption"
+    from 2024-01-01: if is_residence_homestead and (owner_is_over_65 or owner_is_disabled): over_65_disabled_exemption_amount else: 0
+
+# Calculate disabled veteran exemption
+# Full exemption for 100% rating, tiered amounts for lower ratings
+disabled_veteran_exemption:
+    entity: Property
+    source: "Tex. Tax Code 11.22, 11.131"
+    label: "Disabled Veteran Exemption"
+    from 2024-01-01: if not is_residence_homestead or not owner_is_disabled_veteran: 0 else: if veteran_disability_rating >= 100: capped_appraised_value else: if veteran_disability_rating >= 70: 12000 else: if veteran_disability_rating >= 50: 10000 else: if veteran_disability_rating >= 30: 7500 else: if veteran_disability_rating >= 10: 5000 else: 0
+
+# Calculate total homestead exemptions (for school district)
+total_school_exemptions:
+    entity: Property
+    source: "Tex. Tax Code 11.13"
+    label: "Total School Exemptions"
+    from 2024-01-01: school_homestead_exemption + over_65_disabled_exemption + disabled_veteran_exemption
+
+# Calculate taxable value for school district
+taxable_value_school:
+    entity: Property
+    source: "Tex. Tax Code 11.13"
+    label: "Taxable Value (School)"
+    from 2024-01-01: max(0, capped_appraised_value - total_school_exemptions)
+
+# Calculate optional homestead exemption (for other taxing units)
+optional_homestead_exemption:
+    entity: Property
+    source: "Tex. Tax Code 11.13(n)"
+    label: "Optional Homestead Exemption"
+    from 2024-01-01: if not is_residence_homestead: 0 else: max(capped_appraised_value * optional_homestead_percentage / 100, optional_homestead_minimum)

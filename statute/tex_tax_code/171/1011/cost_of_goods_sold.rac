@@ -1,0 +1,67 @@
+# Texas Tax Code 171.1012 - Cost of Goods Sold
+#
+# Defines cost of goods sold deduction for margin calculation
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.171.htm#171.1012
+
+# Input: Direct material costs
+direct_material_costs:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(c)(1)"
+    label: "Direct Material Costs"
+    from 2024-01-01: 0
+
+# Input: Direct labor costs
+direct_labor_costs:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(c)(2)"
+    label: "Direct Labor Costs"
+    from 2024-01-01: 0
+
+# Input: Costs of acquiring or producing property
+production_costs:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(c)"
+    label: "Production Costs"
+    from 2024-01-01: 0
+
+# Input: Depreciation on equipment used in production
+production_depreciation:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(c)(3)"
+    label: "Production Depreciation"
+    from 2024-01-01: 0
+
+# Input: Handling and storage costs
+handling_storage_costs:
+    entity: Business
+    source: "Tex. Tax Code 171.1012(c)(4)"
+    label: "Handling and Storage Costs"
+    from 2024-01-01: 0
+
+# Input: Beginning inventory
+beginning_inventory:
+    entity: Business
+    source: "Tex. Tax Code 171.1012"
+    label: "Beginning Inventory"
+    from 2024-01-01: 0
+
+# Input: Ending inventory
+ending_inventory:
+    entity: Business
+    source: "Tex. Tax Code 171.1012"
+    label: "Ending Inventory"
+    from 2024-01-01: 0
+
+# Calculate cost of goods sold
+cost_of_goods_sold:
+    entity: Business
+    source: "Tex. Tax Code 171.1012"
+    label: "Cost of Goods Sold"
+    from 2024-01-01: max(0, direct_material_costs + direct_labor_costs + production_costs + production_depreciation + handling_storage_costs + beginning_inventory - ending_inventory)
+
+# Calculate margin using COGS method
+margin_using_cogs:
+    entity: Business
+    source: "Tex. Tax Code 171.101(a)(1)(A)(i)"
+    label: "Margin Using COGS"
+    from 2024-01-01: max(0, total_revenue - cost_of_goods_sold)

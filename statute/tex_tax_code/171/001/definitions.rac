@@ -1,0 +1,35 @@
+# Texas Tax Code 171.001 - Definitions
+#
+# Defines key terms for the Texas Franchise Tax (Margin Tax)
+# Reference: https://statutes.capitol.texas.gov/Docs/TX/htm/TX.171.htm#171.001
+
+# Input: Entity type for franchise tax purposes
+# Values: "corporation", "llc", "partnership", "lp", "sole_proprietorship", "other"
+entity_type:
+    entity: Business
+    source: "Tex. Tax Code 171.001(1)"
+    label: "Entity Type"
+    from 2024-01-01: "other"
+
+# Input: Primary business activity type for rate determination
+# Values: "retail_trade", "wholesale_trade", "other"
+primary_business_activity:
+    entity: Business
+    source: "Tex. Tax Code 171.002(a)"
+    label: "Primary Business Activity"
+    from 2024-01-01: "other"
+
+# Determine if entity is subject to franchise tax
+# Sole proprietorships are not taxable entities
+is_subject_to_franchise_tax:
+    entity: Business
+    source: "Tex. Tax Code 171.001"
+    label: "Subject to Franchise Tax"
+    from 2024-01-01: if entity_type == "sole_proprietorship": false else: true
+
+# Input: Is entity doing business in Texas
+is_doing_business_in_texas:
+    entity: Business
+    source: "Tex. Tax Code 171.001(6)"
+    label: "Doing Business in Texas"
+    from 2024-01-01: false
