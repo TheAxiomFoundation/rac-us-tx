@@ -1,7 +1,7 @@
 version: 1
 source_backing:
   kind: akn_sections
-  akn_file: ../../../../official/txhhs/twh/current-effective/source.akn.xml
+  akn_file: source.akn.xml
   section_eids:
     - sec_a_1421_1
     - sec_a_1421_2
