@@ -1,5 +1,9 @@
 # rulespec-us-tx
 
+This repository is archived. Its canonical content now lives in
+[`TheAxiomFoundation/rulespec-us`](https://github.com/TheAxiomFoundation/rulespec-us)
+under `us-tx/`; keep all future RuleSpec work there.
+
 Texas RuleSpec encodings and source registry metadata.
 
 ## Contents
@@ -15,4 +19,4 @@ Texas RuleSpec encodings and source registry metadata.
 Use RuleSpec YAML for encoded rules. Do not add singular rule roots, separate
 parameter/test fixture files, or generated formula artifacts.
 
-Jurisdiction-specific materials belong in this repo. Shared federal materials belong in `rulespec-us`.
+In the canonical monorepo, Texas-administered materials live under `us-tx/`; shared federal materials live at the country root.
